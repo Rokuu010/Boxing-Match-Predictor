@@ -1,0 +1,38 @@
+# This file lists the Python packages required to run my Boxing Match Predictor project.
+# I've organised them by their function to make it clear what each component does.
+#
+# To install all these dependencies, I would run the command:
+# pip install -r requirements.txt
+
+# --- Core Scientific & Machine Learning Stack ---
+# I used these libraries for the fundamental data science tasks in my project.
+numpy
+pandas
+scikit-learn
+
+# --- Advanced Machine Learning Models ---
+# I chose these specialised libraries to build a more powerful model.
+xgboost           # For the high-performance XGBoost model, a key part of my ensemble.
+imbalanced-learn  # To handle the imbalanced dataset using the SMOTE algorithm.
+
+# --- Model Save ---
+# I needed a way to save my trained model to disk so I could load it for predictions later.
+joblib            # I chose this because it's efficient for saving scikit-learn models.
+
+# --- Model Explainability ---
+# To understand why my model makes certain predictions, I integrated SHAP.
+shap              # This allowed me to calculate feature contributions for each prediction.
+
+# --- Data Visualisation ---
+# I used these for creating charts, like the feature contribution plots.
+matplotlib
+seaborn
+
+# --- Optional Web Scraping & Utilities ---
+# I included these to build a feature for fetching fighter data from Wikipedia when fighters names
+# outside of the dataset occured. So the mdoel would still be able to function no matter who the user chooses.
+beautifulsoup4    # For parsing the HTML from web pages.
+requests          # For making HTTP requests to get the web page content.
+lxml              # An efficient parser that I used with BeautifulSoup.
+html5lib          # Another parser option for BeautifulSoup.
+wikipedia         # A convenient wrapper for the Wikipedia API.

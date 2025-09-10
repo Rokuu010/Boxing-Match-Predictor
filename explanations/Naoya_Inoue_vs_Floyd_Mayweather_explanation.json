@@ -1,0 +1,71 @@
+{
+  "fighter_A": "Naoya Inoue",
+  "fighter_B": "Floyd Mayweather",
+  "winner": "Naoya Inoue",
+  "confidence": 0.6690103507656662,
+  "proba_A_raw": 0.6675109148213753,
+  "proba_A_adj": 0.6690103507656662,
+  "method": "SHAP (RF + XGB averaged)",
+  "top_contributions": [
+    {
+      "feature": "PunchAccDiff",
+      "feature_value": -4.0,
+      "contribution": -0.3929650319254515,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "SoSDiff",
+      "feature_value": -1.0,
+      "contribution": 0.2675670967242785,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "DefenseDiff",
+      "feature_value": 4.0,
+      "contribution": 0.23880303051683213,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "ReachDiff",
+      "feature_value": -12.0,
+      "contribution": 0.2291394180379922,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "RecentWinPercDiff",
+      "feature_value": 0.0,
+      "contribution": 0.21396918132628662,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "KODiff",
+      "feature_value": 0.32999999999999996,
+      "contribution": 0.157087699489143,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "PowerVsSchedule",
+      "feature_value": -0.32999999999999996,
+      "contribution": 0.13223529449430987,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "AgeDiff",
+      "feature_value": -8.0,
+      "contribution": 0.0856791575313603,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "WinsVsSchedule",
+      "feature_value": 23.0,
+      "contribution": 0.07001096815129086,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "TimeSinceDiff",
+      "feature_value": 0.0,
+      "contribution": -0.0657620936607571,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    }
+  ]
+}

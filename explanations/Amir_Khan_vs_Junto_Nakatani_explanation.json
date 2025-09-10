@@ -1,0 +1,71 @@
+{
+  "fighter_A": "Amir Khan",
+  "fighter_B": "Junto Nakatani",
+  "winner": "Amir Khan",
+  "confidence": 0.6921317736710279,
+  "proba_A_raw": 0.6930139725694224,
+  "proba_A_adj": 0.6921317736710279,
+  "method": "SHAP (avg RF + XGB)",
+  "top_contributions": [
+    {
+      "feature": "RecentWinPercDiff",
+      "feature_value": -0.20999999999999996,
+      "contribution": -0.6203888612916649,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "SoSDiff",
+      "feature_value": 1.0,
+      "contribution": 0.5181798444036559,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "PunchAccDiff",
+      "feature_value": -6.0,
+      "contribution": -0.2693669667749039,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "RecentFormWeighted",
+      "feature_value": -0.26249999999999996,
+      "contribution": 0.2272518440299194,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "AgeDiff",
+      "feature_value": 7.0,
+      "contribution": 0.18777197625555483,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "DefenseDiff",
+      "feature_value": 51.24,
+      "contribution": 0.181857360257701,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "PowerVsSchedule",
+      "feature_value": -0.41,
+      "contribution": 0.12199708718999237,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "WeightDiff",
+      "feature_value": 0.0,
+      "contribution": 0.06168267479440951,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "KODiff",
+      "feature_value": -0.41,
+      "contribution": 0.057230813222174555,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "ReachDiff",
+      "feature_value": 6.0,
+      "contribution": 0.043398517221942635,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    }
+  ]
+}

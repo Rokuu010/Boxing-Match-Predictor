@@ -1,0 +1,11 @@
+feature,feature_value,contribution,note
+RecentWinPercDiff,-0.20999999999999996,-0.6203888612916649,Positive → toward Fighter A; Negative → toward Fighter B
+SoSDiff,1.0,0.5181798444036559,Positive → toward Fighter A; Negative → toward Fighter B
+PunchAccDiff,-6.0,-0.2693669667749039,Positive → toward Fighter A; Negative → toward Fighter B
+RecentFormWeighted,-0.26249999999999996,0.2272518440299194,Positive → toward Fighter A; Negative → toward Fighter B
+AgeDiff,7.0,0.18777197625555483,Positive → toward Fighter A; Negative → toward Fighter B
+DefenseDiff,51.24,0.181857360257701,Positive → toward Fighter A; Negative → toward Fighter B
+PowerVsSchedule,-0.41,0.12199708718999237,Positive → toward Fighter A; Negative → toward Fighter B
+WeightDiff,0.0,0.06168267479440951,Positive → toward Fighter A; Negative → toward Fighter B
+KODiff,-0.41,0.057230813222174555,Positive → toward Fighter A; Negative → toward Fighter B
+ReachDiff,6.0,0.043398517221942635,Positive → toward Fighter A; Negative → toward Fighter B

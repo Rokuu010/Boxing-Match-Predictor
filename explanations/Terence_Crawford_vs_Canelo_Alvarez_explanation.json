@@ -1,0 +1,61 @@
+{
+  "fighter_A": "Terence Crawford",
+  "fighter_B": "Canelo Alvarez",
+  "predicted_winner": "Terence Crawford",
+  "confidence": 0.6142485844770527,
+  "raw_probability_A": 0.616922542529509,
+  "adjusted_probability_A": 0.6142485844770527,
+  "explanation_method": "SHAP (avg RF + XGB)",
+  "top_contributions": [
+    {
+      "feature": "PowerVsSchedule",
+      "value": 0.0,
+      "contribution": 0.3484738094371465
+    },
+    {
+      "feature": "RecentWinPercDiff",
+      "value": 0.0,
+      "contribution": 0.20908214886587695
+    },
+    {
+      "feature": "SoSDiff",
+      "value": 0.0,
+      "contribution": 0.1905355692644078
+    },
+    {
+      "feature": "DefenseDiff",
+      "value": -1.0,
+      "contribution": -0.13123341985961665
+    },
+    {
+      "feature": "PunchAccDiff",
+      "value": -1.0,
+      "contribution": -0.080730463770552
+    },
+    {
+      "feature": "ReachDiff",
+      "value": 9.0,
+      "contribution": 0.07823410243317931
+    },
+    {
+      "feature": "RecentFormWeighted",
+      "value": 0.0,
+      "contribution": 0.04755238997945694
+    },
+    {
+      "feature": "TimeSinceDiff",
+      "value": 0.0,
+      "contribution": -0.04231982327548707
+    },
+    {
+      "feature": "AgeDiff",
+      "value": 4.0,
+      "contribution": -0.036811015862017044
+    },
+    {
+      "feature": "KODiff",
+      "value": 0.12,
+      "contribution": 0.01853278367336953
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "fighter_A": "Amir Khan",
+  "fighter_B": "Floyd Mayweather",
+  "winner": "Floyd Mayweather",
+  "confidence": 0.8139654787076084,
+  "proba_A_raw": 0.1952180940590653,
+  "proba_A_adj": 0.18603452129239162,
+  "method": "SHAP (RF + XGB averaged)",
+  "top_contributions": [
+    {
+      "feature": "RecentWinPercDiff",
+      "feature_value": -0.20999999999999996,
+      "contribution": -0.5766915827443484,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "PowerVsSchedule",
+      "feature_value": 0.11000000000000004,
+      "contribution": 0.3699097549041754,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "PunchAccDiff",
+      "feature_value": -16.0,
+      "contribution": -0.29547339152442703,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "AgeDiff",
+      "feature_value": -6.0,
+      "contribution": 0.2438407566474684,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "RecentFormWeighted",
+      "feature_value": -0.15749999999999997,
+      "contribution": 0.2371287613221215,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "SoSDiff",
+      "feature_value": -1.0,
+      "contribution": 0.14182151606465604,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "DefenseDiff",
+      "feature_value": -8.0,
+      "contribution": -0.11825916360798772,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "TimeSinceDiff",
+      "feature_value": 60.0,
+      "contribution": 0.07545109298541085,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "ReachDiff",
+      "feature_value": -3.0,
+      "contribution": -0.046743528729301,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    },
+    {
+      "feature": "KODiff",
+      "feature_value": -0.11000000000000004,
+      "contribution": 0.04342057489079005,
+      "note": "Positive \u2192 toward Fighter A; Negative \u2192 toward Fighter B"
+    }
+  ]
+}
