@@ -24,30 +24,42 @@ def register_alias(alias, canonical):
 
 def _resolve_name(name, choices, cutoff=0.9):
     """
-    I designed this function to find a fighter's name from user input, but only
-    if it's a high-confidence match. It no longer uses a low-confidence fallback
-    to prevent incorrect matches.
+    I designed this function to find a fighter's name from user input. I've now
+    made it case-insensitive to handle different user capitalisations and prevent
+    errors.
 
     My process is:
     1. Check my custom alias map first.
-    2. Look for an exact match.
-    3. Look for a very close spelling mistake (90% similarity).
+    2. Look for an exact match (ignoring case).
+    3. Look for a very close spelling mistake (90% similarity, ignoring case).
     4. If no good match is found, it will return None.
     """
-    if name in alias_map:
-        return alias_map[name]
-    if name in choices:
-        return name
+    # I create a mapping from each lowercase name to its original, correctly-cased version.
+    lower_to_original_map = {c.lower(): c for c in choices}
+    lower_choices = list(lower_to_original_map.keys())
+    
+    # I convert the user's input to lowercase for a case-insensitive comparison.
+    lower_name = name.lower()
 
-    # Only looking for high-confidence matches to avoid errors.
-    cand = difflib.get_close_matches(name, choices, n=1, cutoff=cutoff)
+    # I check my alias map first.
+    if lower_name in alias_map:
+        return alias_map[lower_name]
+    
+    # Then I check for an exact (but case-insensitive) match.
+    if lower_name in lower_to_original_map:
+        return lower_to_original_map[lower_name]
+
+    # Finally, I look for close spelling mistakes.
+    cand = difflib.get_close_matches(lower_name, lower_choices, n=1, cutoff=cutoff)
     if cand:
-        logging.info(f"Resolved input '{name}' to '{cand[0]}' from local data.")
-        return cand[0]
+        # If a close match is found, I return the original, correctly-cased name.
+        original_name = lower_to_original_map[cand[0]]
+        logging.info(f"Resolved input '{name}' to '{original_name}' from local data.")
+        return original_name
     
     # If no good match is found, return None so the app knows to scrape the web.
     return None
-
+    
 def build_fighters_stats(df):
     """
     This function processes my main dataframe and creates a clean dictionary where
