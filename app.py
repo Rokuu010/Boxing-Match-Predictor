@@ -180,7 +180,7 @@ def main():
                         tape_data[name][ko_index] = f"{ko_val:.1%}" + ("*" if is_scraped else "")
 
                 df_tape = pd.DataFrame(tape_data).set_index('Stat')
-                st.dataframe(df_tape.style.format(na_rep="-"))
+                st.dataframe(df_tape.style.format("{:.2f}", na_rep="-"))
 
                 if is_scraped_a or is_scraped_b:
                     st.caption("*Stat is an estimated average from my dataset as it could not be found online.")
