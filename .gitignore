@@ -7,3 +7,4 @@ venv/
 
 # Generated output files
 explanations/
+wiki_audit_report.csv
