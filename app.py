@@ -112,7 +112,7 @@ def get_or_scrape_fighter(name, fighters_stats, all_fighters, avg_stats):
 # Main Application Logic
 def main():
     st.set_page_config(page_title="Boxing Predictor", page_icon="🥊")
-    st.title("🥊 AI Boxing Analyst")
+    st.title("🥊 Boxing Match Predictor")
     st.write(
         "Welcome to my Boxing Predictor! I built this app to predict the outcome of "
         "fights using a machine learning model. Type in two fighter names below. "
@@ -197,4 +197,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
