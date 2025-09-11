@@ -22,34 +22,31 @@ def register_alias(alias, canonical):
     """A helper function to add new aliases to the map programmatically."""
     alias_map[alias] = canonical
 
-def _resolve_name(name, choices, cutoff=0.95):
+def _resolve_name(name, choices, cutoff=0.9):
     """
-    I designed this function to reliably find a fighter's name from user input.
-    It's crucial for making my interactive app user-friendly. My process is:
-    1. Check my custom alias map first for any manual overrides.
-    2. Look for an exact match in the list of known fighters.
-    3. If no exact match is found, I use a fuzzy string match with a high
-       confidence threshold (95%) to correct minor spelling mistakes.
-    4. As a final fallback, I try again with a lower threshold to catch more
-       significant typos. If it's still not found, I raise an error.
+    I designed this function to find a fighter's name from user input, but only
+    if it's a high-confidence match. It no longer uses a low-confidence fallback
+    to prevent incorrect matches.
+
+    My process is:
+    1. Check my custom alias map first.
+    2. Look for an exact match.
+    3. Look for a very close spelling mistake (90% similarity).
+    4. If no good match is found, it will return None.
     """
     if name in alias_map:
         return alias_map[name]
     if name in choices:
         return name
 
-    # First attempt: high confidence fuzzy match
+    # Only looking for high-confidence matches to avoid errors.
     cand = difflib.get_close_matches(name, choices, n=1, cutoff=cutoff)
     if cand:
+        logging.info(f"Resolved input '{name}' to '{cand[0]}' from local data.")
         return cand[0]
-
-    # Second attempt: lower confidence fallback
-    cand2 = difflib.get_close_matches(name, choices, n=1, cutoff=0.6)
-    if cand2:
-        logging.info(f"Resolved '{name}' to '{cand2[0]}' with low confidence.")
-        return cand2[0]
-
-    raise ValueError(f"Fighter '{name}' could not be found or matched.")
+    
+    # If no good match is found, return None so the app knows to scrape the web.
+    return None
 
 def build_fighters_stats(df):
     """
