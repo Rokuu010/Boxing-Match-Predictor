@@ -1,10 +1,10 @@
 # In this file, I'm building the web application for my Boxing Predictor.
 # I'm using the Streamlit library, which makes it incredibly fast and easy
-# to create and share data-driven web apps.
+# to create and share
 
 # --- Path Setup ---
 # I'm adding these lines to manually add my 'src' folder to the Python path.
-# This is a standard practice for making sure my application can correctly find
+# Making sure my application can correctly find
 # and import the modules from my source library, especially when running scripts
 # like this one from the project's root directory.
 import sys
@@ -26,8 +26,8 @@ from src.features import feature_cols
 from src.utils import get_fighter_data # Import the Wikipedia scraper
 
 # --- Caching ---
-# I'm using Streamlit's caching feature to load my model and data only once
-# when the app starts. This is a huge performance optimisation.
+# I'm using Streamlits caching feature to load my model and data only once
+# when the app starts
 @st.cache_resource
 def load_artifacts():
     """
@@ -121,17 +121,20 @@ def main():
     # --- User Interface ---
     col1, col2 = st.columns(2)
     with col1:
-        fighter_a_name_input = st.text_input("Enter Fighter A"),
+        fighter_a_name_input = st.text_input("Enter Fighter A", value="Mike Tyson")
     with col2:
-        fighter_b_name_input = st.text_input("Enter Fighter B"),
+        fighter_b_name_input = st.text_input("Enter Fighter B", value="Tyson Fury")
 
     if st.button("Predict Winner"):
+        # I've moved the validation logic here, before any data processing.
+        # This logic now correctly uses the raw string inputs from the text boxes.
         if not fighter_a_name_input or not fighter_b_name_input:
             st.warning("Please enter a name for both fighters.")
         elif fighter_a_name_input.lower() == fighter_b_name_input.lower():
             st.warning("Please enter two different fighter names.")
         else:
             with st.spinner(f"Analysing the matchup..."):
+                # Now that the inputs are validated, I can safely fetch the stats.
                 stats_a, name_a = get_or_scrape_fighter(fighter_a_name_input, fighters_stats, all_fighters, avg_stats)
                 stats_b, name_b = get_or_scrape_fighter(fighter_b_name_input, fighters_stats, all_fighters, avg_stats)
 
@@ -152,7 +155,6 @@ def main():
                 st.subheader("Prediction Result")
                 st.metric(label=f"Predicted Winner", value=winner, delta=f"Confidence: {confidence:.1%}")
 
-                # --- Tale of the Tape Section ---
                 st.subheader("Tale of the Tape")
                 st.write("Here are the key stats my model used for the prediction.")
 
