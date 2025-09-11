@@ -21,7 +21,7 @@ from . import config
 
 def train_model(df, feature_cols, calibrate=True, test_size=None, random_state=None):
     """
-    Trains, tunes, and evaluates the complete machine learning model pipeline.
+    Trains, tunes and evaluates the complete machine learning model pipeline.
 
     This function performs the following steps:
     1. Preprocesses the data by imputing missing values.
@@ -29,48 +29,48 @@ def train_model(df, feature_cols, calibrate=True, test_size=None, random_state=N
     3. Handles class imbalance in the training set using SMOTE.
     4. Tunes hyperparameters for Random Forest and XGBoost models.
     5. Assembles a soft-voting ensemble model.
-    6. Calibrates the model's probabilities.
+    6. Calibrates the models probabilities.
     7. Evaluates the final model and saves the trained model.
 
     Returns:
-        A tuple containing the final model, imputer, and test data (X_test, y_test).
+        This returns a tuple containing the final model, imputer, and test data (X_test, y_test).
     """
-    # Use default values from the config file if none are provided.
+    # Uses default values from the config file if none are provided.
     if test_size is None:
         test_size = config.TEST_SIZE
     if random_state is None:
         random_state = config.RANDOM_STATE
 
-    # == 1. Data Preparation ==
+    # Data Preparation
     # Separate features (X) and target variable (y).
     X = df[feature_cols].copy()
     y = df["Result"].astype(int).copy()
 
-    # Fill any missing values in the feature set using the mean of each column.
+    # Fills any missing values in the feature set using the mean of each column.
     imputer = SimpleImputer(strategy="mean")
     X_imputed = pd.DataFrame(imputer.fit_transform(X), columns=feature_cols)
 
-    # Split the data into a training set and a hold-out test set.
+    # Splits the data into a training set and a hold-out test set.
     # 'stratify=y' ensures both sets have a similar proportion of wins/losses.
     X_train, X_test, y_train, y_test = train_test_split(
         X_imputed, y, test_size=test_size, random_state=random_state, stratify=y
     )
 
-    # == 2. Handling Class Imbalance ==
-    # Use SMOTE to create synthetic examples of the minority class.
-    # This is done *only* on the training data to prevent data leakage into the test set.
+    # Handling Class Imbalance
+    # Uses SMOTE to create synthetic examples of the minority class.
+    # This is done ONLY on the training data to prevent data leakage into the test set.
     smote = SMOTE(random_state=random_state, k_neighbors=1)
     X_train_res, y_train_res = smote.fit_resample(X_train, y_train)
     logging.info(f"Training set size after SMOTE: {X_train_res.shape[0]} samples")
 
-    # Prepare for cross-validation during tuning.
+    # Prepares for cross-validation during tuning.
     cv = StratifiedKFold(n_splits=config.CV_FOLDS, shuffle=True, random_state=random_state)
 
-    # == 3. Hyperparameter Tuning ==
-    # Use RandomizedSearchCV to efficiently find the best settings for our models
+    # Hyperparameter Tuning
+    # Uses RandomizedSearchCV to efficiently find the best settings for my models
     # without exhaustively trying every single combination.
 
-    # Tune the Random Forest model.
+    # Tunes the Random Forest model.
     rf = RandomForestClassifier(random_state=random_state, n_jobs=-1)
     rf_dist = {
         "n_estimators":  [200, 300, 500, 700, 900],
@@ -86,8 +86,7 @@ def train_model(df, feature_cols, calibrate=True, test_size=None, random_state=N
     rf_best = rf_search.best_estimator_
     logging.info(f"Best Random Forest params: {rf_search.best_params_}")
 
-    # Tune the XGBoost model.
-    # NOTE: I've removed `use_label_encoder=False` as it is outdated and causes a warning.
+    # Tunes the XGBoost model.
     xgb_base = xgb.XGBClassifier(
         objective="binary:logistic", eval_metric="logloss", random_state=random_state,
         tree_method="hist", n_jobs=-1
@@ -107,12 +106,12 @@ def train_model(df, feature_cols, calibrate=True, test_size=None, random_state=N
     xgb_best = xgb_search.best_estimator_
     logging.info(f"Best XGBoost params: {xgb_search.best_params_}")
 
-    # == 4. Model Assembly and Final Training ==
-    # Create a simple Logistic Regression model to add diversity to the ensemble.
+    # Model Assembly and Final Training
+    # Creates a simple Logistic Regression model to add diversity to the ensemble.
     logreg = LogisticRegression(max_iter=1000, class_weight="balanced", solver="liblinear")
 
-    # Combine the three tuned models into a single, more powerful ensemble.
-    # 'voting="soft"' averages their prediction probabilities, which is generally more effective.
+    # Combines the three tuned models into a single, more powerful ensemble.
+    # 'voting="soft"' averages their prediction probabilities which is generally more effective.
     ensemble = VotingClassifier(
         estimators=[("rf", rf_best), ("xgb", xgb_best), ("lr", logreg)],
         voting="soft",
@@ -120,23 +119,23 @@ def train_model(df, feature_cols, calibrate=True, test_size=None, random_state=N
     )
     ensemble.fit(X_train_res, y_train_res)
 
-    # Calibrate the ensemble to make its confidence scores more reliable.
+    # Calibrates the ensemble to make its confidence scores more reliable.
     final_model = ensemble
     if calibrate:
         final_model = CalibratedClassifierCV(ensemble, cv=3, method="sigmoid")
         final_model.fit(X_train_res, y_train_res)
 
-    # == 5. Saving Model ==
-    # Save the final trained model and the imputer for later use in prediction.
+    # Saving Model
+    # Saves the final trained model and the imputer for later use in prediction.
     joblib.dump(final_model, config.MODEL_PATH)
     joblib.dump(imputer, config.IMPUTER_PATH)
 
-    # Also save the individual tuned models for later explainability (e.g., SHAP).
+    # Also saves the individual tuned models for later explainability (e.g., SHAP).
     joblib.dump(rf_best, config.RF_PATH)
     joblib.dump(xgb_best, config.XGB_PATH)
 
-    # == 6. Evaluation ==
-    # Test the final model's performance on the hold-out test set it has never seen before.
+    # Evaluation
+    # Tests the final models performance on the hold-out test set it has never seen before.
     print("\n--- Final Model Evaluation on Hold-Out Set ---")
     y_pred = final_model.predict(X_test)
     y_proba = final_model.predict_proba(X_test)[:, 1]

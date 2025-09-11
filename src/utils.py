@@ -17,7 +17,7 @@ def setup_logging():
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 
-# --- Data Cleaning & Parsing Helpers ---
+# Data Cleaning & Parsing Helpers
 # I wrote these helper functions to clean messy text from Wikipedia
 # and reliably extract the numerical values I need.
 
@@ -52,12 +52,12 @@ def parse_weight(weight_str):
     """
     if not weight_str:
         return None
-    # First, I look for a value in kilograms (kg) and convert it to pounds.
+    # First it looks for a value in kilograms (kg) and convert it to pounds.
     kg_match = re.search(r"([\d.]+)\s*kg", weight_str)
     if kg_match:
         kilograms = float(kg_match.group(1))
         return kilograms * 2.20462
-    # If I don't find kg, I look for a value in pounds (lbs).
+    # If it doesn't find kg it looks for a value in pounds (lbs).
     lbs_match = re.search(r"([\d.]+)\s*lbs", weight_str)
     if lbs_match:
         return float(lbs_match.group(1))
@@ -67,7 +67,7 @@ def parse_age_from_dob(dob_str):
     """I created this to parse a date of birth and calculate the current age."""
     if not dob_str:
         return None
-    # I use a regular expression to find the birth date, typically in (YYYY-MM-DD) format.
+    # I use a regular expression to find the birthdate, typically in (YYYY-MM-DD) format.
     match = re.search(r'\((\d{4})-\d{2}-\d{2}\)', dob_str)
     if match:
         birth_year = int(match.group(1))
@@ -86,7 +86,7 @@ def parse_wins(wins_str):
     return None
 
 
-# --- Wikipedia Scraping Helpers ---
+# Wikipedia Scraping Helpers
 def wiki_search(name):
     """
     This function takes a fighter's name and searches Wikipedia for the most

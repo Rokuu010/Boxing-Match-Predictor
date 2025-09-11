@@ -1,8 +1,7 @@
 # In this file, I'm building the web application for my Boxing Predictor.
-# I'm using the Streamlit library, which makes it incredibly fast and easy
-# to create and share
+# I'm using the Streamlit library, which makes it fast and easy to create and share
 
-# --- Path Setup ---
+# Path Setup
 # I'm adding these lines to manually add my 'src' folder to the Python path.
 # Making sure my application can correctly find
 # and import the modules from my source library, especially when running scripts
@@ -10,7 +9,7 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
-# --- End Path Setup ---
+# End Path Setup
 
 import streamlit as st
 import joblib
@@ -25,9 +24,9 @@ from src.explain import ensemble_shap_explain, adjust_with_tech_skills
 from src.features import feature_cols
 from src.utils import get_fighter_data # Import the Wikipedia scraper
 
-# --- Caching ---
-# I'm using Streamlits caching feature to load my model and data only once
-# when the app starts
+# Caching
+# I'm using Streamlits caching feature to load my model and data only once when the app starts
+
 @st.cache_resource
 def load_artifacts():
     """
@@ -43,7 +42,7 @@ def load_artifacts():
         "RandomForest": joblib.load(config.RF_PATH)
     }
 
-    # I'm calculating the average stats for all fighters in my dataset.
+    # This calculates the average stats for all fighters in my dataset.
     # This will be my fallback for any missing data when I scrape from Wikipedia.
     avg_stats = pd.DataFrame.from_dict(fighters_stats, orient='index').mean().to_dict()
 
@@ -56,7 +55,7 @@ def get_or_scrape_fighter(name, fighters_stats, all_fighters, avg_stats):
     with the latest data scraped from Wikipedia.
     """
     try:
-        # First, I try to find the fighter in my existing, high-quality dataset.
+        # First, I try to find the fighter in my existing dataset.
         canonical_name = _resolve_name(name, all_fighters)
         # I take a copy of the stats from my local data as a reliable base.
         base_stats = fighters_stats[canonical_name].copy()
@@ -102,7 +101,7 @@ def get_or_scrape_fighter(name, fighters_stats, all_fighters, avg_stats):
         st.success(f"Successfully scraped basic stats for '{name}'. Using average values for other metrics.")
         return final_stats, name
 
-# --- Main Application Logic ---
+# Main Application Logic
 def main():
     st.set_page_config(page_title="Boxing Predictor", page_icon="🥊")
     st.title("🥊 Boxing Match Predictor")
@@ -118,7 +117,7 @@ def main():
         st.error("Error: Model files not found. Please run `train.py` first.")
         return
 
-    # --- User Interface ---
+    # User Interface
     col1, col2 = st.columns(2)
     with col1:
         fighter_a_name_input = st.text_input("Enter Fighter A", value="Mike Tyson")
@@ -138,7 +137,7 @@ def main():
                 stats_a, name_a = get_or_scrape_fighter(fighter_a_name_input, fighters_stats, all_fighters, avg_stats)
                 stats_b, name_b = get_or_scrape_fighter(fighter_b_name_input, fighters_stats, all_fighters, avg_stats)
 
-                # --- Prediction and Explanation Logic ---
+                # Prediction and Explanation Logic
                 row_df = build_feature_row(stats_a, stats_b)
                 row_df_imputed = pd.DataFrame(imputer.transform(row_df), columns=feature_cols)
 
@@ -151,7 +150,7 @@ def main():
                 winner = name_a if proba_A_adj >= 0.5 else name_b
                 confidence = float(proba_A_adj if proba_A_adj >= 0.5 else (1 - proba_A_adj))
 
-                # --- Displaying the Results ---
+                # Displaying the Results
                 st.subheader("Prediction Result")
                 st.metric(label=f"Predicted Winner", value=winner, delta=f"Confidence: {confidence:.1%}")
 

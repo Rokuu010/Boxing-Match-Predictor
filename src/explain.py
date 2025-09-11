@@ -1,7 +1,7 @@
 # src/explain.py
 
 # This is the explainability hub of my project. I built these functions to look inside
-# the "black box" of my model and understand *why* it makes a certain prediction.
+# my model and understand why it makes a certain prediction.
 # My main goal was to use the SHAP library to get detailed, feature-by-feature
 # contributions for any given fight matchup.
 
@@ -28,7 +28,7 @@ try:
 except ImportError:
     HAS_SHAP = False
 
-# --- SHAP Calculation Helpers ---
+# SHAP Calculation Helpers
 # I created these helper functions to handle the complexities of calculating SHAP values
 # for the different types of models within my ensemble.
 
@@ -36,13 +36,13 @@ def _tree_shap_values(model, row_df):
     """
     A dedicated function to get SHAP values specifically from tree-based models
     like Random Forest and XGBoost. I added logic to handle different output
-    formats from various versions of the SHAP library to make my code more robust.
+    formats from various versions of the SHAP library to make my code more fit.
     """
     expl = shap.TreeExplainer(model)
     vals = expl.shap_values(row_df)
     vals = np.array(vals)
 
-    # I handle various SHAP output shapes to ensure consistency.
+    # Handles various SHAP output shapes to ensure consistency.
     if vals.ndim == 2 and vals.shape[0] == 1:
         vals = vals[0]
     if vals.ndim == 3: # For multi-class outputs, I take the values for the "win" class.
@@ -105,7 +105,7 @@ def explain_fight(fighterA: str,
     top_k = 10
     os.makedirs(out_dir, exist_ok=True)
 
-    # --- 1. Data Preparation ---
+    # Data Preparation
     fighters_stats, all_fighters = build_fighters_stats(df)
     A = _resolve_name(fighterA, all_fighters)
     B = _resolve_name(fighterB, all_fighters)
@@ -113,12 +113,11 @@ def explain_fight(fighterA: str,
     stats_a = fighters_stats.get(A)
     stats_b = fighters_stats.get(B)
 
-    # This now uses the corrected function name and arguments.
     row_df = build_feature_row(stats_a, stats_b)
     if imputer is not None:
         row_df = pd.DataFrame(imputer.transform(row_df), columns=feature_cols)
 
-    # --- 2. SHAP Contribution Calculation ---
+    # SHAP Contribution Calculation
     models_for_shap = {}
     try:
         if os.path.exists(config.XGB_PATH):
@@ -153,7 +152,7 @@ def explain_fight(fighterA: str,
             logging.warning(f"Fallback explanation failed: {e}")
             contrib_series = pd.Series(0.0, index=feature_cols)
 
-    # --- 3. Final Prediction and Output ---
+    # Final Prediction and Output
     proba_A = model.predict_proba(row_df)[0, 1]
     proba_A_adj = adjust_with_tech_skills(proba_A, contrib_series)
 

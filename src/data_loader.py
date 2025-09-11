@@ -1,17 +1,17 @@
 # src/data_loader.py
 
-# In this script, I've centralised all the functions related to loading and preparing
+# At this point I've centralised all the functions related to loading and preparing
 # my initial dataset. I also decided to place my common helper functions for finding
 # fighter names and building the stats dictionary here. Since both my prediction and
-# explanation scripts need these functions, putting them in this lower-level data
-# script was the best way to prevent circular import errors and keep my code organised.
+# explanation scripts need these functions, putting them in this lower-level
+# was the best way to prevent circular import errors and keep my code organised.
 
 import pandas as pd
 import logging
 import difflib
 from . import config
 
-# --- Fighter Name Resolution & Stats Building ---
+# Fighter Name Resolution & Stats Building
 # These are the shared utility functions I moved here from the predictor script.
 
 # I created this alias map as a way to manually correct any recurring or

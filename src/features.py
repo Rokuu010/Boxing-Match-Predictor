@@ -18,9 +18,9 @@ def engineer_features(df_in):
     """
     In this function, I create new, more powerful features from the raw fighter stats.
 
-    I realised that the model would learn more from the *difference* or *relative
-    advantage* between the two opponents, rather than just their raw stats. For example,
-    a fighter's height isn't as important as their height advantage over their opponent.
+    I realised that the model would learn more from the difference or relative
+    advantage between the two opponents, rather than just their raw stats. For example,
+    a fighters height isn't as important as their height advantage over their opponent.
 
     Args:
         df_in (pd.DataFrame): The input DataFrame with raw stats for Fighter A and B.
@@ -33,7 +33,7 @@ def engineer_features(df_in):
     # I'm working on a copy here to make sure I don't change the original DataFrame.
     df = df_in.copy()
 
-    # --- 1. My Primary Difference Features ---
+    # My Primary Difference Features
     # These features directly capture the physical and statistical advantages of
     # Fighter A over Fighter B. A positive value means A has an advantage on that
     # metric, while a negative value means B has the advantage.
@@ -49,7 +49,7 @@ def engineer_features(df_in):
     df["SoSDiff"]           = df["StrengthOfScheduleA"] - df["StrengthOfScheduleB"]
     df["TimeSinceDiff"]     = df["TimeSinceLastFightA"] - df["TimeSinceLastFightB"]
 
-    # --- 2. My Custom Interaction Features ---
+    # My Custom Interaction Features
     # Here, I combined some of the basic differences to create more nuanced features
     # that I thought would be highly relevant for predicting a boxing match.
 
