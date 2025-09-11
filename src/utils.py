@@ -82,9 +82,12 @@ def parse_wins(wins_str):
     return int(match.group(1)) if match else None
 
 def parse_kos(kos_str):
-    """I added this to find the number of KOs, that are often in parentheses."""
+    """
+    This now only looks for the specific
+    (X KOs) pattern and will not incorrectly use the total win count.
+    """
     if not kos_str: return None
-    match = re.search(r'\((\d+)\s*KOs?\)', kos_str) or re.match(r'(\d+)', kos_str)
+    match = re.search(r'\((\d+)\s*KOs?\)', kos_str)
     return int(match.group(1)) if match else None
 
 
