@@ -10,7 +10,14 @@ import re
 import pandas as pd
 from bs4 import BeautifulSoup
 import wikipedia
+import requests
 from datetime import datetime
+
+# Imports for the advanced scraper as boxrec kept giving error 304 when accessing the website previously
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
 
 def setup_logging():
     """I created this simple function to set up a clean and consistent logging format."""
@@ -18,31 +25,31 @@ def setup_logging():
 
 
 # Data Cleaning & Parsing Helpers
-# I wrote these helper functions to clean messy text from Wikipedia
+# I wrote these helper functions to clean messy text from various sources
 # and reliably extract the numerical values I need.
 
 def clean_stat(value):
     """A general-purpose function to remove citations and special characters."""
-    if pd.isna(value):
-        return None
+    if pd.isna(value): return None
     value = str(value)
-    value = re.sub(r"\[.*?\]", "", value)  # Remove bracketed citations like [1]
+    value = re.sub(r"\[.*?\]", "", value)
     value = value.replace("½", ".5").replace("⁄", "/").replace("+", "")
     return value.strip()
 
 def parse_height(height_str):
     """Extracts height in centimetres from a string."""
-    if not height_str:
-        return None
-    m = re.search(r"(\d+)\s*cm", height_str)
+    if not height_str: return None
+    m = re.search(r'(\d+)\s*cm', height_str)
     return float(m.group(1)) if m else None
 
 def parse_reach(reach_str):
-    """Extracts reach in centimetres from a string."""
-    if not reach_str:
-        return None
-    m = re.search(r"(\d+)\s*cm", reach_str)
-    return float(m.group(1)) if m else None
+    """Extracts reach in centimetres from a string, handling inches from BoxRec."""
+    if not reach_str: return None
+    m_in = re.search(r'(\d+)″', reach_str)
+    if m_in:
+        return float(m_in.group(1)) * 2.54
+    m_cm = re.search(r'(\d+)\s*cm', reach_str)
+    return float(m_cm.group(1)) if m_cm else None
 
 def parse_weight(weight_str):
     """
@@ -50,43 +57,98 @@ def parse_weight(weight_str):
     always in pounds (lbs). It first looks for kilograms and converts them,
     then looks for pounds. This makes my data consistent.
     """
-    if not weight_str:
-        return None
-    # First it looks for a value in kilograms (kg) and convert it to pounds.
-    kg_match = re.search(r"([\d.]+)\s*kg", weight_str)
+    if not weight_str: return None
+    kg_match = re.search(r'([\d.]+)\s*kg', weight_str)
     if kg_match:
-        kilograms = float(kg_match.group(1))
-        return kilograms * 2.20462
-    # If it doesn't find kg it looks for a value in pounds (lbs).
-    lbs_match = re.search(r"([\d.]+)\s*lbs", weight_str)
+        return float(kg_match.group(1)) * 2.20462
+    lbs_match = re.search(r'([\d.]+)\s*lbs', weight_str)
     if lbs_match:
         return float(lbs_match.group(1))
     return None
 
 def parse_age_from_dob(dob_str):
     """I created this to parse a date of birth and calculate the current age."""
-    if not dob_str:
-        return None
-    # I use a regular expression to find the birthdate, typically in (YYYY-MM-DD) format.
-    match = re.search(r'\((\d{4})-\d{2}-\d{2}\)', dob_str)
+    if not dob_str: return None
+    match = re.search(r'(\d{4}-\d{2}-\d{2})', dob_str) or re.search(r'(\d{4})', dob_str)
     if match:
-        birth_year = int(match.group(1))
-        current_year = datetime.now().year
-        return current_year - birth_year
+        birth_year = int(match.group(1)[:4])
+        return datetime.now().year - birth_year
     return None
 
 def parse_wins(wins_str):
     """I wrote this to extract the number of wins from the infobox text."""
-    if not wins_str:
-        return None
-    # The number of wins is usually the first integer in the string.
+    if not wins_str: return None
     match = re.match(r'(\d+)', wins_str)
-    if match:
-        return int(match.group(1))
-    return None
+    return int(match.group(1)) if match else None
+
+def parse_kos(kos_str):
+    """I added this to find the number of KOs, that are often in parentheses."""
+    if not kos_str: return None
+    match = re.search(r'\((\d+)\s*KOs?\)', kos_str) or re.match(r'(\d+)', kos_str)
+    return int(match.group(1)) if match else None
 
 
-# Wikipedia Scraping Helpers
+# Web Scraping Helpers (Now using Selenium for BoxRec)
+
+def _get_selenium_driver():
+    """I created this helper to set up the Selenium browser driver."""
+    chrome_options = Options()
+    # 'headless' mode means the browser runs in the background without a visible window.
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+    # This automatically downloads and manages the correct driver for my version of Chrome.
+    service = ChromeService(ChromeDriverManager().install())
+    return webdriver.Chrome(service=service, options=chrome_options)
+
+def fetch_boxrec_stats(name):
+    """
+    This is my new, more powerful scraper for BoxRec that uses Selenium to avoid
+    being blocked. It's a bit slower but much more reliable.
+    """
+    driver = None
+    try:
+        driver = _get_selenium_driver()
+        search_url = f"https://boxrec.com/en/search?search%5Bquery%5D={name.replace(' ', '+')}"
+        driver.get(search_url)
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        first_result = soup.find('a', href=lambda href: href and '/en/proboxer/' in href)
+        if not first_result: return {}
+
+        profile_url = f"https://boxrec.com{first_result['href']}"
+        driver.get(profile_url)
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        stats = {}
+        profile_table = soup.find('table', {'class': 'profileTable'})
+        if profile_table:
+            for row in profile_table.find_all('tr'):
+                label_cell = row.find('td', {'class': 'labelCell'})
+                if label_cell:
+                    label = label_cell.text.strip().lower()
+                    value_cell = label_cell.find_next_sibling('td')
+                    if value_cell:
+                        value = value_cell.text.strip()
+                        if 'born' in label: stats['age'] = parse_age_from_dob(value)
+                        if 'reach' in label: stats['reach'] = parse_reach(value)
+                        if 'height' in label: stats['height'] = parse_height(value)
+
+            wins_cell = soup.find('td', {'class': 'textWon'})
+            if wins_cell:
+                stats['wins'] = int(wins_cell.text)
+                kos_cell = wins_cell.find_next_sibling('td')
+                if kos_cell:
+                    stats['wins_by_ko'] = int(kos_cell.text)
+        return stats
+    except Exception as e:
+        logging.warning(f"Selenium scrape for {name} failed: {e}")
+        return {}
+    finally:
+        # Close the browser driver when I'm done.
+        if driver:
+            driver.quit()
+
 def wiki_search(name):
     """
     This function takes a fighter's name and searches Wikipedia for the most
@@ -100,24 +162,19 @@ def wiki_search(name):
 
 def fetch_wiki_stats(name):
     """
-    This is my main scraping function. It now fetches height, reach, weight,
-    age, and total wins from a fighter's Wikipedia infobox.
+    This is my fallback scraper. It gets stats from Wikipedia if BoxRec fails.
     """
     page_title = wiki_search(name)
-    if not page_title:
-        return {}
+    if not page_title: return {}
     try:
         html_content = wikipedia.page(page_title, auto_suggest=False).html()
         soup = BeautifulSoup(html_content, "html.parser")
         info = {}
         table = soup.find("table", {"class": "infobox"})
-        if not table:
-            return {}
+        if not table: return {}
         for row in table.find_all("tr"):
-            header = row.find("th")
-            data = row.find("td")
-            if not header or not data:
-                continue
+            header, data = row.find("th"), row.find("td")
+            if not header or not data: continue
 
             key = header.text.strip().lower()
             val = data.text.strip()
@@ -125,21 +182,33 @@ def fetch_wiki_stats(name):
             if "height" in key: info["height"] = parse_height(clean_stat(val))
             if "reach" in key: info["reach"] = parse_reach(clean_stat(val))
             if "weight" in key: info["weight"] = parse_weight(clean_stat(val))
-            # I added logic to find the 'Born' and 'Wins' rows.
             if "born" in key: info["age"] = parse_age_from_dob(clean_stat(val))
-            if key == "wins": info["wins"] = parse_wins(clean_stat(val))
+            if key == "wins":
+                info["wins"] = parse_wins(clean_stat(val))
+                info["wins_by_ko"] = parse_kos(clean_stat(val))
         return info
     except Exception:
         return {}
 
 def get_fighter_data(name):
-    """A simple wrapper to fetch and return all available stats for a single fighter."""
-    stats = fetch_wiki_stats(name)
-    return {
+    """
+    My main data fetching function it works by:
+    1. Trying to get stats from BoxRec first (primary source).
+    2. Trys to get stats from Wikipedia second (fallback source).
+    3. Combines the results, giving preference to the more reliable BoxRec data.
+    """
+    logging.info(f"Fetching live data for {name}...")
+    boxrec_stats = fetch_boxrec_stats(name)
+    wiki_stats = fetch_wiki_stats(name)
+
+    # This combine the dictionaries while prioritising the BoxRec data.
+    final_stats = {
         "name": name,
-        "height": stats.get("height"),
-        "reach": stats.get("reach"),
-        "weight": stats.get("weight"),
-        "age": stats.get("age"),
-        "wins": stats.get("wins"),
+        "height": boxrec_stats.get("height") or wiki_stats.get("height"),
+        "reach": boxrec_stats.get("reach") or wiki_stats.get("reach"),
+        "weight": wiki_stats.get("weight"),
+        "age": boxrec_stats.get("age") or wiki_stats.get("age"),
+        "wins": boxrec_stats.get("wins") or wiki_stats.get("wins"),
+        "wins_by_ko": boxrec_stats.get("wins_by_ko") or wiki_stats.get("wins_by_ko"),
     }
+    return final_stats

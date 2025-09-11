@@ -118,7 +118,17 @@ def load_and_clean_data(csv_path=None):
     ]
     # 'errors="coerce"' is a useful setting that will turn any non-numeric values into 'NaN'.
     df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors="coerce")
+
+    # Data Sanitisation Step
+    # I noticed some KO percentages might be entered as whole numbers (e.g., 88)
+    # instead of decimals (0.88). This code finds any values over 1.0 and
+    # divides them by 100 to correct them. This prevents impossible stats like a 121% KO average.
+    for col in ["KOPercA", "KOPercB"]:
+        # I'm applying this correction to any row where the value is greater than 1.
+        df.loc[df[col] > 1, col] = df.loc[df[col] > 1, col] / 100
+        logging.info(f"Sanitised KO percentages in column: {col}")
+
     df = df.dropna(subset=["Result"])
 
-    logging.info(f"Data cleaned. {df.shape[0]} rows remaining.")
+    logging.info(f"Data cleaned and sanitised. {df.shape[0]} rows remaining.")
     return df
