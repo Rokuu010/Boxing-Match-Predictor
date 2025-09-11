@@ -5,6 +5,9 @@
 # Python virtual environment
 venv/
 
+# Python cache
+__pycache__/
+
 # Generated output files
 explanations/
 wiki_audit_report.csv
