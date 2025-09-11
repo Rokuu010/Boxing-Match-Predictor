@@ -22,7 +22,7 @@ from src.data_loader import load_and_clean_data, build_fighters_stats, _resolve_
 from src.predictor import build_feature_row
 from src.explain import ensemble_shap_explain, adjust_with_tech_skills
 from src.features import feature_cols
-from src.utils import get_fighter_data # Import the Wikipedia scraper
+from src.utils import get_fighter_data # Import the web scraper
 
 # Caching
 # I'm using Streamlits caching feature to load my model and data only once when the app starts
@@ -54,15 +54,15 @@ def get_or_scrape_fighter(name, fighters_stats, all_fighters, avg_stats):
     local data, and if successful, it then attempts to update their age and wins
     with the latest data scraped from Wikipedia.
     """
-    try:
-        # First, I try to find the fighter in my existing dataset.
-        canonical_name = _resolve_name(name, all_fighters)
-        # I take a copy of the stats from my local data as a reliable base.
+    # First, I'll try to find a high-confidence match in my existing dataset.
+    canonical_name = _resolve_name(name, all_fighters)
+
+    # If a good match is found, I'll use that fighter's data.
+    if canonical_name:
         base_stats = fighters_stats[canonical_name].copy()
 
-        # Now, I perform a live check on Wikipedia to get the latest info.
+        # Now, I perform a live check on the web to get the latest info.
         live_stats = get_fighter_data(canonical_name)
-
         updates_made = []
         # I only update the age if the scraper finds a new one.
         if live_stats.get("age") and live_stats["age"] != base_stats.get("Age"):
@@ -79,11 +79,18 @@ def get_or_scrape_fighter(name, fighters_stats, all_fighters, avg_stats):
         else:
             st.info(f"Found '{name}' as '{canonical_name}' in the local dataset. Stats are up-to-date.")
 
-        return base_stats, canonical_name
-    except ValueError:
-        # If the fighter is not found locally, I fall back to the original scraper logic.
-        st.warning(f"'{name}' not found in local data. Attempting to fetch from Wikipedia...")
+        return base_stats, canonical_name, False # Return False as it's not a scraped profile
+
+    # If no high-confidence match was found, I'll treat it as a new fighter.
+    else:
+        st.warning(f"'{name}' not found in local data. Attempting to fetch from the web...")
         scraped_stats = get_fighter_data(name)
+
+        ko_perc = None
+        if scraped_stats.get("wins") and scraped_stats.get("wins_by_ko"):
+            if scraped_stats["wins"] > 0:
+                ko_perc = scraped_stats["wins_by_ko"] / scraped_stats["wins"]
+                st.success(f"Calculated live KO % for {name}: {ko_perc:.1%}")
 
         final_stats = {
             "Reach": scraped_stats.get("reach") or avg_stats.get('Reach'),
@@ -91,7 +98,7 @@ def get_or_scrape_fighter(name, fighters_stats, all_fighters, avg_stats):
             "Weight": scraped_stats.get("weight") or avg_stats.get('Weight'),
             "Age": scraped_stats.get("age") or avg_stats.get('Age'),
             "Wins": scraped_stats.get("wins") or avg_stats.get('Wins'),
-            "KO%": avg_stats.get('KO%'),
+            "KO%": ko_perc if ko_perc is not None else avg_stats.get('KO%'),
             "RecentWin%": avg_stats.get('RecentWin%'),
             "Defense%": avg_stats.get('Defense%'),
             "PunchAcc": avg_stats.get('PunchAcc'),
@@ -99,7 +106,7 @@ def get_or_scrape_fighter(name, fighters_stats, all_fighters, avg_stats):
             "TimeSince": avg_stats.get('TimeSince')
         }
         st.success(f"Successfully scraped basic stats for '{name}'. Using average values for other metrics.")
-        return final_stats, name
+        return final_stats, name, True # Return True as it IS a scraped profile
 
 # Main Application Logic
 def main():
@@ -126,7 +133,7 @@ def main():
 
     if st.button("Predict Winner"):
         # I've moved the validation logic here, before any data processing.
-        # This logic now correctly uses the raw string inputs from the text boxes.
+        # This logic will now correctly uses the raw string inputs from the text boxes.
         if not fighter_a_name_input or not fighter_b_name_input:
             st.warning("Please enter a name for both fighters.")
         elif fighter_a_name_input.lower() == fighter_b_name_input.lower():
@@ -134,8 +141,8 @@ def main():
         else:
             with st.spinner(f"Analysing the matchup..."):
                 # Now that the inputs are validated, I can safely fetch the stats.
-                stats_a, name_a = get_or_scrape_fighter(fighter_a_name_input, fighters_stats, all_fighters, avg_stats)
-                stats_b, name_b = get_or_scrape_fighter(fighter_b_name_input, fighters_stats, all_fighters, avg_stats)
+                stats_a, name_a, is_scraped_a = get_or_scrape_fighter(fighter_a_name_input, fighters_stats, all_fighters, avg_stats)
+                stats_b, name_b, is_scraped_b = get_or_scrape_fighter(fighter_b_name_input, fighters_stats, all_fighters, avg_stats)
 
                 # Prediction and Explanation Logic
                 row_df = build_feature_row(stats_a, stats_b)
@@ -161,17 +168,22 @@ def main():
                     'Height': 'Height (cm)', 'Reach': 'Reach (cm)', 'Weight': 'Weight (lbs)',
                     'Age': 'Age', 'Wins': 'Wins', 'KO%': 'KO %', 'SoS': 'Strength of Schedule'
                 }
+                
+                tape_data = {'Stat': list(stat_display_order.values())}
+                tape_data[name_a] = [stats_a.get(key) for key in stat_display_order.keys()]
+                tape_data[name_b] = [stats_b.get(key) for key in stat_display_order.keys()]
 
-                tape_data = {
-                    'Stat': [display_name for display_name in stat_display_order.values()],
-                    name_a: [stats_a.get(key) for key in stat_display_order.keys()],
-                    name_b: [stats_b.get(key) for key in stat_display_order.keys()]
-                }
+                ko_index = list(stat_display_order.keys()).index('KO%')
+                for name, is_scraped in [(name_a, is_scraped_a), (name_b, is_scraped_b)]:
+                    ko_val = tape_data[name][ko_index]
+                    if pd.notna(ko_val):
+                        tape_data[name][ko_index] = f"{ko_val:.1%}" + ("*" if is_scraped else "")
+
                 df_tape = pd.DataFrame(tape_data).set_index('Stat')
+                st.dataframe(df_tape.style.format(na_rep="-"))
 
-                st.dataframe(
-                    df_tape.style.format("{:.2f}", na_rep="-").highlight_max(axis=1, color='#053d26').highlight_min(axis=1, color='#450a0a')
-                )
+                if is_scraped_a or is_scraped_b:
+                    st.caption("*Stat is an estimated average from my dataset as it could not be found online.")
 
                 st.subheader("Top Contributing Factors")
                 st.write("This chart shows which statistical differences had the biggest impact on the prediction.")
@@ -188,3 +200,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
