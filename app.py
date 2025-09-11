@@ -120,9 +120,9 @@ def main():
     # User Interface
     col1, col2 = st.columns(2)
     with col1:
-        fighter_a_name_input = st.text_input("Enter Fighter A", value="Mike Tyson")
+        fighter_a_name_input = st.text_input("Enter Fighter A", value="")
     with col2:
-        fighter_b_name_input = st.text_input("Enter Fighter B", value="Tyson Fury")
+        fighter_b_name_input = st.text_input("Enter Fighter B", value="")
 
     if st.button("Predict Winner"):
         # I've moved the validation logic here, before any data processing.
