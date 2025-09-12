@@ -3,7 +3,7 @@ This is a project I built to predict the outcome of professional boxing matches 
 
 To make the model accessible, I built an interactive web application using Streamlit. The app uses a hybrid data system: it relies on a local dataset for core stats but performs live lookups on BoxRec and Wikipedia to get the most up-to-date information for fighters, like their current age and win count.
 
-Live Link 👈 (update after deploy)
+[Live Link](https://boxing-match-predictor-rokku010.streamlit.app/) 👈
 
 
 
@@ -13,7 +13,7 @@ Dynamic Predictions: The app uses an ensemble model (combining XGBoost, Random F
 
 Live Data Integration: The system intelligently scrapes BoxRec (primary) and Wikipedia (fallback) to update fighter stats like age and wins, ensuring predictions are based on the most current data available.
 
-Prediction Explanations: I didn't want my model to be a simple, so I used the SHAP library to generate feature contribution charts. This explains why the model made a certain prediction, showing which stats were the most influential.
+Prediction Explanations: I didn't want my model to be simple, so I used the SHAP library to generate feature contribution charts. This explains why the model made a certain prediction, showing which stats were the most influential.
 
 Fallback System: If a fighter can't be found in my local dataset, the app automatically scrapes the web and uses the average stats from my dataset for any missing information, allowing it to make a reasonable prediction for any professional boxer.
 
@@ -73,3 +73,4 @@ This will create all the necessary model files and save them in the models/ dire
    Finally, you can launch the Streamlit web application.
 
        streamlit run app.py
+
