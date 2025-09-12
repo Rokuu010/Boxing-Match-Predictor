@@ -163,21 +163,32 @@ def main():
                     'Height': 'Height (cm)', 'Reach': 'Reach (cm)', 'Weight': 'Weight (lbs)',
                     'Age': 'Age', 'Wins': 'Wins', 'KO%': 'KO %', 'SoS': 'Strength of Schedule'
                 }
-
+                
+                # --- NEW: Pre-formatting Logic ---
+                # I'm now preparing the data with formatting applied IN ADVANCE to avoid errors.
                 tape_data = {'Stat': list(stat_display_order.values())}
-                tape_data[name_a] = [stats_a.get(key) for key in stat_display_order.keys()]
-                tape_data[name_b] = [stats_b.get(key) for key in stat_display_order.keys()]
+                
+                def format_stats(stats, is_scraped):
+                    formatted = []
+                    for key, display_name in stat_display_order.items():
+                        val = stats.get(key)
+                        if pd.isna(val):
+                            formatted.append("-")
+                        elif key == 'KO%':
+                            formatted.append(f"{val:.1%}" + ("*" if is_scraped else ""))
+                        elif isinstance(val, float):
+                            formatted.append(f"{val:.2f}")
+                        else:
+                            formatted.append(val)
+                    return formatted
 
-                ko_index = list(stat_display_order.keys()).index('KO%')
-                for name, is_scraped in [(name_a, is_scraped_a), (name_b, is_scraped_b)]:
-                    ko_val = tape_data[name][ko_index]
-                    if pd.notna(ko_val):
-                        tape_data[name][ko_index] = f"{ko_val:.1%}" + ("*" if is_scraped else "")
+                tape_data[name_a] = format_stats(stats_a, is_scraped_a)
+                tape_data[name_b] = format_stats(stats_b, is_scraped_b)
 
                 df_tape = pd.DataFrame(tape_data).set_index('Stat')
                 
-                # This is the corrected line that formats the numbers nicely.
-                st.dataframe(df_tape.style.format("{:.2f}", na_rep="-"))
+                # Now I can just display the pre-formatted DataFrame without the risky .style.format()
+                st.dataframe(df_tape)
 
                 if is_scraped_a or is_scraped_b:
                     st.caption("*Some stats were estimated using a dataset average as they could not be found online.")
