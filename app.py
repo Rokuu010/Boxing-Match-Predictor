@@ -164,7 +164,7 @@ def main():
                     'Age': 'Age', 'Wins': 'Wins', 'KO%': 'KO %', 'SoS': 'Strength of Schedule'
                 }
                 
-                # --- NEW: Pre-formatting Logic ---
+                # Pre-formatting Logic 
                 # I'm now preparing the data with formatting applied IN ADVANCE to avoid errors.
                 tape_data = {'Stat': list(stat_display_order.values())}
                 
@@ -187,7 +187,7 @@ def main():
 
                 df_tape = pd.DataFrame(tape_data).set_index('Stat')
                 
-                # Now I can just display the pre-formatted DataFrame without the risky .style.format()
+                # Now I can just display the pre-formatted DataFrame
                 st.dataframe(df_tape)
 
                 if is_scraped_a or is_scraped_b:
