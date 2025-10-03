@@ -9,7 +9,7 @@ This project is an end-to-end machine learning application designed to predict t
 To make the model accessible, it's deployed as an interactive web application using Streamlit. The app uses a hybrid data system, relying on a local dataset for core stats while performing live lookups on BoxRec and Wikipedia to ensure predictions are based on the most current fighter information available.
 
 
-*(A screenshot or GIF of your app here would look great!)*
+<img width="2880" height="1738" alt="Screenshot predictor" src="https://github.com/user-attachments/assets/81792818-0481-4d88-9e3b-dbaeaa24c2fd" />
 
 ---
 
@@ -105,3 +105,4 @@ Follow these steps to set up and run the project on your local machine.
     streamlit run app.py
     ```
     Your browser should automatically open with the application running locally.
+
