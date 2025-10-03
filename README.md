@@ -1,76 +1,107 @@
 # 🥊 Boxing Match Predictor 🥊
-This is a project I built to predict the outcome of professional boxing matches using machine learning. I created an end-to-end pipeline that handles everything from data cleaning and feature engineering to model training and explainability.
 
-To make the model accessible, I built an interactive web application using Streamlit. The app uses a hybrid data system: it relies on a local dataset for core stats but performs live lookups on BoxRec and Wikipedia to get the most up-to-date information for fighters, like their current age and win count.
+[![Python](https://img.shields.io/badge/Python-3.9+-blue?style=for-the-badge&logo=python)](https://www.python.org/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.25+-red?style=for-the-badge&logo=streamlit)](https://streamlit.io)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-[Live Link](https://boxing-match-predictor-rokku010.streamlit.app/) 👈
+This project is an end-to-end machine learning application designed to predict the outcomes of professional boxing matches. It features a complete data pipeline, from data collection and feature engineering to model training, evaluation, and explainability.
+
+To make the model accessible, it's deployed as an interactive web application using Streamlit. The app uses a hybrid data system, relying on a local dataset for core stats while performing live lookups on BoxRec and Wikipedia to ensure predictions are based on the most current fighter information available.
 
 
+*(A screenshot or GIF of your app here would look great!)*
 
-Key Features:
+---
 
-Dynamic Predictions: The app uses an ensemble model (combining XGBoost, Random Forest, and Logistic Regression) that achieves around 87% accuracy on my test set.
+##  Live App
 
-Live Data Integration: The system intelligently scrapes BoxRec (primary) and Wikipedia (fallback) to update fighter stats like age and wins, ensuring predictions are based on the most current data available.
+**Try the interactive predictor yourself:** [**boxing-match-predictor.streamlit.app**](https://boxing-match-predictor-rokku010.streamlit.app/)
 
-Prediction Explanations: I didn't want my model to be simple, so I used the SHAP library to generate feature contribution charts. This explains why the model made a certain prediction, showing which stats were the most influential.
+---
 
-Fallback System: If a fighter can't be found in my local dataset, the app automatically scrapes the web and uses the average stats from my dataset for any missing information, allowing it to make a reasonable prediction for any professional boxer.
+##  Key Features
 
-Interactive UI: I used Streamlit to build a simple and user-friendly interface that allows anyone to get a prediction without needing to touch the code.
+*  **Ensemble Model Predictions:** Utilises a powerful ensemble of **XGBoost, Random Forest, and Logistic Regression** models to achieve ~87% prediction accuracy on the test set.
 
-Technology Stack:
+*  **Live Data Integration:** Fetches up-to-date fighter stats (age, wins, losses) in real-time by scraping **BoxRec** and **Wikipedia**, ensuring predictions are always current.
 
-Backend & Machine Learning: Python, Pandas, Scikit-learn, XGBoost, SHAP, Imbalanced-learn
+*  **Explainable AI:** Generates **SHAP** feature contribution charts to explain *why* a prediction was made, providing transparency and insight into the model's decision-making process.
 
-Web Application: Streamlit
+*  **Fallback System:** If a fighter isn't in the local dataset, the app automatically scrapes their data and imputes any missing stats using dataset averages, allowing it to make a reasonable prediction for almost any professional boxer.
 
-Web Scraping: Selenium, Beautiful Soup, Requests, Wikipedia
+*  **Interactive UI:** A clean and user-friendly interface built with **Streamlit** that allows anyone to easily input two fighters and get an instant prediction.
 
-File Management: Git & Git LFS (for handling the large model files)
+---
 
-How to Run This Project Locally:
+## 🛠️ Technology Stack
 
-To get this project running on your own machine, follow these steps.
-#
+* **Data Science & Machine Learning:**
+    `Python`, `Pandas`, `Scikit-learn`, `XGBoost`, `SHAP`, `Imbalanced-learn`
 
-1. Initial Setup
+* **Web Application & Scraping:**
+    `Streamlit`, `Selenium`, `Beautiful Soup`, `Requests`, `Wikipedia`
 
-   First, clone the repository to your local machine:
+* **Version Control:**
+    `Git`, `Git LFS` (for handling large model files)
 
-   git clone [https://github.com/Rokuu010/Boxing-Match-Predictor.git](https://github.com/Rokuu010/Boxing-Match-Predictor.git)
-cd Boxing-Match-Predictor
-#
+---
 
-2. Set Up the Environment
+##  Setup:
 
-   I used a Python virtual environment to manage the project's dependencies.
+Follow these steps to set up and run the project on your local machine.
 
-# Create the virtual environment
-      python -m venv venv
+1.  **Prerequisites**
 
-# Activate it (on Windows)
-    .\venv\Scripts\activate
-#
-3. Install Dependencies
+    Ensure you have **Python 3.9** or later and **Git** installed on your system.
 
-   Install all the required libraries from the requirements.txt file.
+2.  **Clone the Repository**
 
-       pip install -r requirements.txt
+    Open your terminal, navigate to your desired directory, and clone the repository.
 
-(Note: This project uses Selenium, which will automatically download the correct Chrome driver for your browser version).
-#
+    ```sh
+    git clone [https://github.com/Rokuu010/Boxing-Match-Predictor.git]
+    
+    cd Boxing-Match-Predictor
+    ```
 
-4. Train the Model
-   Before you can run the app, you need to train the model. I've created a simple script that handles the entire training pipeline.
+3.  **Set Up a Virtual Environment**
 
-       python train.py
+    It's highly recommended to use a virtual environment to manage project dependencies.
 
-This will create all the necessary model files and save them in the models/ directory.
-#
+    ```sh
+    # Create the virtual environment
+    python -m venv venv
 
-5. Run the Web App
-   Finally, you can launch the Streamlit web application.
+    # Activate the environment
+    # On Windows:
+    venv\Scripts\activate
+    # On macOS/Linux:
+    source venv/bin/activate
+    ```
 
-       streamlit run app.py
+4.  **Install Dependencies**
 
+    Install all the required libraries from the `requirements.txt` file.
+
+    ```sh
+    pip install -r requirements.txt
+    ```
+    *(Note: Selenium will automatically download the correct Chrome driver for your browser.)*
+
+5.  **Train the Model**
+
+    Run the training script. This will process the data and generate the machine learning models.
+
+    ```sh
+    python train.py
+    ```
+    This will create the necessary model files and save them in the `models/` directory.
+
+6.  **Run the Web App**
+
+    Finally, launch the Streamlit application.
+
+    ```sh
+    streamlit run app.py
+    ```
+    Your browser should automatically open with the application running locally.
