@@ -132,81 +132,101 @@ def main():
         fighter_b_name_input = st.text_input("Enter Fighter B", value="")
 
     if st.button("Predict Winner"):
-        if not fighter_a_name_input or not fighter_b_name_input:
-            st.warning("Please enter a name for both fighters.")
-        elif fighter_a_name_input.lower() == fighter_b_name_input.lower():
-            st.warning("Please enter two different fighter names.")
-        else:
-            with st.spinner(f"Analysing the matchup..."):
-                stats_a, name_a, is_scraped_a = get_or_scrape_fighter(fighter_a_name_input, fighters_stats, all_fighters, avg_stats)
-                stats_b, name_b, is_scraped_b = get_or_scrape_fighter(fighter_b_name_input, fighters_stats, all_fighters, avg_stats)
+    if not fighter_a_name_input or not fighter_b_name_input:
+        st.warning("Please enter a name for both fighters.")
+    elif fighter_a_name_input.lower() == fighter_b_name_input.lower():
+        st.warning("Please enter two different fighter names.")
+    else:
+        with st.spinner(f"Analysing the matchup..."):
 
-                row_df = build_feature_row(stats_a, stats_b)
-                row_df = row_df.reindex(columns=feature_cols)
-                row_df = row_df.apply(pd.to_numeric, errors='coerce')
-                row_df_imputed = pd.DataFrame(imputer.transform(row_df), columns=feature_cols)
+            # Get stats for both fighters (local or scraped)
+            stats_a, name_a, is_scraped_a = get_or_scrape_fighter(fighter_a_name_input, fighters_stats, all_fighters, avg_stats)
+            stats_b, name_b, is_scraped_b = get_or_scrape_fighter(fighter_b_name_input, fighters_stats, all_fighters, avg_stats)
 
-                contrib_map = ensemble_shap_explain(row_df_imputed, models_for_shap)
-                contrib_series = pd.Series(contrib_map)
+            # Build the feature row
+            row_df = build_feature_row(stats_a, stats_b)
 
-                proba_A = model.predict_proba(row_df_imputed)[0, 1]
-                proba_A_adj = adjust_with_tech_skills(proba_A, contrib_series)
+            # Ensure columns exist and match the imputer
+            row_df = row_df.reindex(columns=feature_cols)
 
-                winner = name_a if proba_A_adj >= 0.5 else name_b
-                confidence = float(proba_A_adj if proba_A_adj >= 0.5 else (1 - proba_A_adj))
+            # Convert all columns to numeric safely
+            for col in row_df.columns:
+                if not pd.api.types.is_numeric_dtype(row_df[col]):
+                    row_df[col] = pd.to_numeric(row_df[col], errors='coerce')
 
-                st.subheader("Prediction Result")
-                st.metric(label=f"Predicted Winner", value=winner, delta=f"Confidence: {confidence:.1%}")
+            # debug output to check dtypes
+            st.write("Feature row types before imputer:", row_df.dtypes)
 
-                st.subheader("Tale of the Tape")
-                st.write("Here are the key stats my model used for the prediction.")
-                
-                stat_display_order = {
-                    'Height': 'Height (cm)', 'Reach': 'Reach (cm)', 'Weight': 'Weight (lbs)',
-                    'Age': 'Age', 'Wins': 'Wins', 'KO%': 'KO %', 'SoS': 'Strength of Schedule'
-                }
-                
-                # Pre-formatting Logic 
-                # I'm now preparing the data with formatting applied IN ADVANCE to avoid errors.
-                tape_data = {'Stat': list(stat_display_order.values())}
-                
-                def format_stats(stats, is_scraped):
-                    formatted = []
-                    for key, display_name in stat_display_order.items():
-                        val = stats.get(key)
-                        if pd.isna(val):
-                            formatted.append("-")
-                        elif key == 'KO%':
-                            formatted.append(f"{val:.1%}" + ("*" if is_scraped else ""))
-                        elif isinstance(val, float):
-                            formatted.append(f"{val:.2f}")
-                        else:
-                            formatted.append(val)
-                    return formatted
+            # Transform with imputer
+            row_df_imputed = pd.DataFrame(imputer.transform(row_df), columns=feature_cols)
 
-                tape_data[name_a] = format_stats(stats_a, is_scraped_a)
-                tape_data[name_b] = format_stats(stats_b, is_scraped_b)
+            # SHAP contributions
+            contrib_map = ensemble_shap_explain(row_df_imputed, models_for_shap)
+            contrib_series = pd.Series(contrib_map)
 
-                df_tape = pd.DataFrame(tape_data).set_index('Stat')
-                
-                # Now I can just display the pre-formatted DataFrame
-                st.dataframe(df_tape)
+            # Predict probabilities and adjust
+            proba_A = model.predict_proba(row_df_imputed)[0, 1]
+            proba_A_adj = adjust_with_tech_skills(proba_A, contrib_series)
 
-                if is_scraped_a or is_scraped_b:
-                    st.caption("*Some stats were estimated using a dataset average as they could not be found online.")
+            # Determine winner
+            winner = name_a if proba_A_adj >= 0.5 else name_b
+            confidence = float(proba_A_adj if proba_A_adj >= 0.5 else (1 - proba_A_adj))
 
-                st.subheader("Top Contributing Factors")
-                st.write("This chart shows which statistical differences had the biggest impact on the prediction.")
+            # Display results
+            st.subheader("Prediction Result")
+            st.metric(label=f"Predicted Winner", value=winner, delta=f"Confidence: {confidence:.1%}")
+            
+            st.subheader("Tale of the Tape")
+            st.write("Here are the key stats my model used for the prediction.")
 
-                top_feats = contrib_series.abs().sort_values(ascending=False).head(10).index
-                top_contrib = contrib_series[top_feats].sort_values()
+            stat_display_order = {
+                'Height': 'Height (cm)',
+                'Reach': 'Reach (cm)',
+                'Weight': 'Weight (lbs)',
+                'Age': 'Age',
+                'Wins': 'Wins',
+                'KO%': 'KO %',
+                'SoS': 'Strength of Schedule'
+            }
 
-                fig, ax = plt.subplots(figsize=(10, 6))
-                top_contrib.plot(kind="barh", ax=ax)
-                ax.set_title(f"Feature Contributions: {name_a} vs {name_b}")
-                ax.set_xlabel("Signed SHAP Contribution (Pushing Prediction)")
-                plt.tight_layout()
-                st.pyplot(fig)
+            tape_data = {'Stat': list(stat_display_order.values())}
+
+            def format_stats(stats, is_scraped):
+                formatted = []
+                for key, display_name in stat_display_order.items():
+                    val = stats.get(key)
+                    if pd.isna(val):
+                        formatted.append("-")
+                    elif key == 'KO%':
+                        formatted.append(f"{val:.1%}" + ("*" if is_scraped else ""))
+                    elif isinstance(val, float):
+                        formatted.append(f"{val:.2f}")
+                    else:
+                        formatted.append(val)
+                return formatted
+
+            tape_data[name_a] = format_stats(stats_a, is_scraped_a)
+            tape_data[name_b] = format_stats(stats_b, is_scraped_b)
+
+            df_tape = pd.DataFrame(tape_data).set_index('Stat')
+            st.dataframe(df_tape)
+
+            if is_scraped_a or is_scraped_b:
+                st.caption("*Some stats were estimated using a dataset average as they could not be found online.")
+
+            # Top contributing factors
+            st.subheader("Top Contributing Factors")
+            st.write("This chart shows which statistical differences had the biggest impact on the prediction.")
+
+            top_feats = contrib_series.abs().sort_values(ascending=False).head(10).index
+            top_contrib = contrib_series[top_feats].sort_values()
+
+            fig, ax = plt.subplots(figsize=(10, 6))
+            top_contrib.plot(kind="barh", ax=ax)
+            ax.set_title(f"Feature Contributions: {name_a} vs {name_b}")
+            ax.set_xlabel("Signed SHAP Contribution (Pushing Prediction)")
+            plt.tight_layout()
+            st.pyplot(fig)
 
 if __name__ == "__main__":
     main()
