@@ -143,9 +143,8 @@ def main():
 
                 row_df = build_feature_row(stats_a, stats_b)
                 row_df = row_df.reindex(columns=feature_cols)
-                row_df = row_df.astype(float)
+                row_df = row_df.apply(pd.to_numeric, errors='coerce')
                 row_df_imputed = pd.DataFrame(imputer.transform(row_df), columns=feature_cols)
-
 
                 contrib_map = ensemble_shap_explain(row_df_imputed, models_for_shap)
                 contrib_series = pd.Series(contrib_map)
