@@ -142,7 +142,10 @@ def main():
                 stats_b, name_b, is_scraped_b = get_or_scrape_fighter(fighter_b_name_input, fighters_stats, all_fighters, avg_stats)
 
                 row_df = build_feature_row(stats_a, stats_b)
+                row_df = row_df.reindex(columns=feature_cols)
+                row_df = row_df.astype(float)
                 row_df_imputed = pd.DataFrame(imputer.transform(row_df), columns=feature_cols)
+
 
                 contrib_map = ensemble_shap_explain(row_df_imputed, models_for_shap)
                 contrib_series = pd.Series(contrib_map)
