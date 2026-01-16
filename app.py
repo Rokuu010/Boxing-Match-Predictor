@@ -131,25 +131,26 @@ def main():
     with col2:
         fighter_b_name_input = st.text_input("Enter Fighter B", value="")
 
-   if st.button("Predict Winner"):
-    if not fighter_a_name_input or not fighter_b_name_input:
-        st.warning("Please enter a name for both fighters.")
-    elif fighter_a_name_input.lower() == fighter_b_name_input.lower():
-        st.warning("Please enter two different fighter names.")
-    else:
-        with st.spinner(f"Analysing the matchup..."):
+       if st.button("Predict Winner"):
+        if not fighter_a_name_input or not fighter_b_name_input:
+            st.warning("Please enter a name for both fighters.")
+        elif fighter_a_name_input.lower() == fighter_b_name_input.lower():
+            st.warning("Please enter two different fighter names.")
+        else:
+            with st.spinner("Analysing the matchup..."):
 
-            # Build feature row
-            stats_a, name_a, is_scraped_a = get_or_scrape_fighter(fighter_a_name_input, fighters_stats, all_fighters, avg_stats)
-            stats_b, name_b, is_scraped_b = get_or_scrape_fighter(fighter_b_name_input, fighters_stats, all_fighters, avg_stats)
+                # Get stats
+                stats_a, name_a, is_scraped_a = get_or_scrape_fighter(fighter_a_name_input, fighters_stats, all_fighters, avg_stats)
+                stats_b, name_b, is_scraped_b = get_or_scrape_fighter(fighter_b_name_input, fighters_stats, all_fighters, avg_stats)
 
-            row_df = build_feature_row(stats_a, stats_b)
-            row_df = row_df.reindex(columns=feature_cols)
-            for col in row_df.columns:
-                if not pd.api.types.is_numeric_dtype(row_df[col]):
-                    row_df[col] = pd.to_numeric(row_df[col], errors='coerce')
-            row_df_imputed = pd.DataFrame(imputer.transform(row_df), columns=feature_cols)
-
+                # Build feature row
+                row_df = build_feature_row(stats_a, stats_b)
+                row_df = row_df.reindex(columns=feature_cols)
+                for col in row_df.columns:
+                    if not pd.api.types.is_numeric_dtype(row_df[col]):
+                        row_df[col] = pd.to_numeric(row_df[col], errors='coerce')
+                row_df_imputed = pd.DataFrame(imputer.transform(row_df), columns=feature_cols)
+                
             # SHAP contributions
             contrib_map = ensemble_shap_explain(row_df_imputed, models_for_shap)
             contrib_series = pd.Series(contrib_map)
