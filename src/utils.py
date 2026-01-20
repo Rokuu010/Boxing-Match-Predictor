@@ -11,12 +11,12 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import wikipedia
 import requests
+import shutil
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.core.os_manager import ChromeType
+
 
 def setup_logging():
     """I created this simple function to set up a clean and consistent logging format."""
@@ -95,7 +95,8 @@ def parse_kos(kos_str):
 def _get_selenium_driver():
     """
     I created this helper to set up the Selenium browser driver.
-    UPDATED: Now uses ChromeType.CHROMIUM to work on Streamlit Cloud.
+    UPDATED: Now uses the system-installed 'chromium-driver' from packages.txt
+    to avoid the 'Exec format error' caused by webdriver-manager.
     """
     chrome_options = Options()
     # 'headless' mode means the browser runs in the background without a visible window.
@@ -104,8 +105,11 @@ def _get_selenium_driver():
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
 
-    # This automatically downloads and manages the CHROMIUM driver (not Google Chrome).
-    service = Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
+    # Finds the driver installed via apt-get (packages.txt)
+    # This usually looks in /usr/bin/chromedriver or finds it automatically.
+    driver_path = shutil.which("chromedriver") or "/usr/bin/chromedriver"
+
+    service = Service(driver_path)
 
     return webdriver.Chrome(service=service, options=chrome_options)
 
@@ -150,7 +154,7 @@ def fetch_boxrec_stats(name):
                     stats['wins_by_ko'] = int(kos_cell.text)
         return stats
     except Exception as e:
-        # Logging warning so we know if scraping fails, but the app won't crash
+        # Logging warning so i know if scraping fails, but the app won't crash
         logging.warning(f"Selenium scrape for {name} failed: {e}")
         return {}
     finally:
