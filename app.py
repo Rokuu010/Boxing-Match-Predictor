@@ -22,7 +22,8 @@ from src.data_loader import load_and_clean_data, build_fighters_stats, _resolve_
 from src.predictor import build_feature_row
 from src.explain import ensemble_shap_explain, adjust_with_tech_skills
 from src.features import feature_cols
-from src.utils import get_fighter_data # Import the web scraper
+from src.utils import get_fighter_data
+from src.style import apply_boxing_theme
 
 # Caching
 # I'm using Streamlits caching feature to load my model and data only once when the app starts
@@ -111,6 +112,7 @@ def get_or_scrape_fighter(name, fighters_stats, all_fighters, avg_stats):
 # Main Application Logic
 def main():
     st.set_page_config(page_title="Boxing Predictor", page_icon="🥊")
+    apply_boxing_theme()
     st.title("🥊 Boxing Match Predictor")
     st.write(
         "Welcome to my Boxing Predictor! I built this app to predict the outcome of "
