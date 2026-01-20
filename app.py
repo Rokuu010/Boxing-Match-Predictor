@@ -193,7 +193,7 @@ def main():
                         elif isinstance(val, float):
                             formatted.append(f"{val:.2f}")
                         else:
-                            formatted.append(val)
+                            formatted.append(str(val))
                     return formatted
 
                 tape_data[name_a] = format_stats(stats_a, is_scraped_a)
